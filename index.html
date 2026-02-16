@@ -3,10 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- ✅ FAVICON RESTORED -->
 <link rel="icon" type="image/png" href="favicon.png">
-
 <title>TrackMyMNY</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -85,17 +82,13 @@ cursor:pointer;
 font-weight:600;
 }
 
-.table-wrapper{overflow-x:auto;}
-
 table{
 width:100%;
 border-collapse:collapse;
 background:rgba(255,255,255,0.08);
 border-radius:18px;
-min-width:600px;
 }
 
-/* 🔥 No blue header in dark mode */
 th{
 background:transparent;
 padding:10px;
@@ -126,8 +119,8 @@ cursor:pointer;
 }
 
 .summary-box{
-margin-top:12px;
-padding:12px;
+margin-top:15px;
+padding:15px;
 border-radius:14px;
 background:rgba(255,255,255,0.1);
 }
@@ -139,29 +132,21 @@ border-radius:20px;
 padding:15px;
 }
 
-/* LIGHT MODE */
 .light{
 background:linear-gradient(135deg,#ffffff,#e2e8f0);
 color:#111;
 }
 
-.light .card,
-.light table,
-.light canvas{
-background:white;
-color:#111;
+.light .card,.light table,.light canvas{
+background:white;color:#111;
 }
 
 .light th{
-background:#f8fafc;
-color:#111;
-border-bottom:1px solid #ddd;
+background:#f8fafc;color:#111;border-bottom:1px solid #ddd;
 }
 
 .light input,.light select{
-background:#f1f5f9;
-color:#111;
-border:1px solid #ccc;
+background:#f1f5f9;color:#111;border:1px solid #ccc;
 }
 
 @media(max-width:768px){
@@ -179,12 +164,14 @@ border:1px solid #ccc;
 
 <div class="container">
 
+<!-- DASHBOARD -->
 <div class="dashboard">
 <div class="card"><h3>Total Balance</h3><div class="balance" id="balance">₹0</div></div>
 <div class="card"><h3>Total Credit</h3><div class="credit" id="totalCredit">₹0</div></div>
 <div class="card"><h3>Total Debit</h3><div class="debit" id="totalDebit">₹0</div></div>
 </div>
 
+<!-- ADD -->
 <div class="card">
 <h3>Add Transaction</h3>
 <div class="form-grid">
@@ -206,11 +193,17 @@ border:1px solid #ccc;
 <option>Agrements & Rent</option>
 <option>Others</option>
 </select>
+<select id="mode">
+<option value="Cash">Cash</option>
+<option value="Online">Online</option>
+<option value="Card">Card</option>
+</select>
 <input type="number" id="amount" placeholder="Amount">
 <button onclick="addTransaction()">Add</button>
 </div>
 </div>
 
+<!-- FILTERS -->
 <div class="card">
 <h3>Filters</h3>
 
@@ -235,16 +228,19 @@ border:1px solid #ccc;
 </select>
 
 <p><strong>Total Spent:</strong> ₹<span id="filteredTotal">0</span></p>
-<div id="dailyCategorySummary" class="summary-box"></div>
+
+<div id="categorySummary" class="summary-box"></div>
 </div>
 
-<div class="card table-wrapper">
+<!-- TABLE -->
+<div class="card">
 <table>
 <thead>
 <tr>
 <th>Date</th>
 <th>Type</th>
 <th>Category</th>
+<th>Mode</th>
 <th>Amount</th>
 <th>Action</th>
 </tr>
@@ -253,6 +249,7 @@ border:1px solid #ccc;
 </table>
 </div>
 
+<!-- CHART -->
 <div class="card">
 <canvas id="expenseChart"></canvas>
 </div>
@@ -261,19 +258,14 @@ border:1px solid #ccc;
 
 <script>
 
-/* 🎨 UNIQUE COLOR SYSTEM */
+/* UNIQUE COLOR SYSTEM */
 let chart;
-
 let fullColorPalette=[
 "#3b82f6","#ef4444","#22c55e","#f59e0b","#8b5cf6","#14b8a6",
-"#e11d48","#6366f1","#10b981","#f97316","#06b6d4","#a855f7",
-"#84cc16","#f43f5e","#0ea5e9","#d946ef","#facc15","#0f766e",
-"#be123c","#4338ca","#15803d","#ea580c","#7e22ce","#0891b2",
-"#65a30d","#db2777","#1d4ed8","#047857","#b45309","#6d28d9"
+"#e11d48","#6366f1","#10b981","#f97316","#06b6d4","#a855f7"
 ];
 
-let categoryColorMap={};
-let usedColors=new Set();
+let categoryColorMap={}, usedColors=new Set();
 
 function getCategoryColor(category){
 if(categoryColorMap[category]) return categoryColorMap[category];
@@ -282,14 +274,11 @@ if(!usedColors.has(color)){
 categoryColorMap[category]=color;
 usedColors.add(color);
 return color;
-}
-}
-let randomColor="#" + Math.floor(Math.random()*16777215).toString(16);
-categoryColorMap[category]=randomColor;
-return randomColor;
+}}
+return "#999";
 }
 
-/* FULL PREVIOUS EXPENSES */
+/* PREVIOUS DATA INCLUDING ₹15000 */
 let previousTransactions=[
 {date:"2026-01-19",type:"Debit",category:"Supermarket",amount:340},
 {date:"2026-01-19",type:"Debit",category:"Bed",amount:650},
@@ -350,11 +339,16 @@ let previousTransactions=[
 {date:"2026-02-15",type:"Debit",category:"Mess Fees",amount:3405}
 ];
 
-let transactions=[];
-let balance=0,totalCredit=0,totalDebit=0;
+let transactions=JSON.parse(localStorage.getItem("trackMyMNYData"))||[];
+
+function saveData(){
+localStorage.setItem("trackMyMNYData",JSON.stringify(transactions));
+}
 
 document.addEventListener("DOMContentLoaded",()=>{
 document.getElementById("date").value=new Date().toISOString().split('T')[0];
+populateDates();
+renderTable();
 });
 
 document.addEventListener("keydown",function(e){
@@ -367,28 +361,25 @@ function addTransaction(){
 let date=document.getElementById("date").value;
 let type=document.getElementById("type").value;
 let category=document.getElementById("category").value;
+let mode=document.getElementById("mode").value;
 let amount=parseFloat(document.getElementById("amount").value);
 if(!date||!amount)return alert("Enter required fields");
-transactions.push({date,type,category,amount});
+transactions.push({date,type,category,mode,amount});
+saveData();
 document.getElementById("amount").value="";
 populateDates();
 renderTable();
 }
 
-function calculateTotals(){
-balance=0;totalCredit=0;totalDebit=0;
-let startDate=new Date("2026-02-05");
-let all=[...previousTransactions,...transactions];
-all.forEach(t=>{
-let d=new Date(t.date);
-if(d>=startDate){
-if(t.type==="Credit"){balance+=t.amount;totalCredit+=t.amount;}
-else{balance-=t.amount;totalDebit+=t.amount;}
-}
+/* MERGE LOGIC */
+function mergeTransactions(data){
+let merged={};
+data.forEach(t=>{
+let key=t.date+"_"+t.type+"_"+t.category+"_"+t.mode;
+if(!merged[key]) merged[key]={...t};
+else merged[key].amount+=t.amount;
 });
-document.getElementById("balance").innerText="₹"+balance;
-document.getElementById("totalCredit").innerText="₹"+totalCredit;
-document.getElementById("totalDebit").innerText="₹"+totalDebit;
+return Object.values(merged);
 }
 
 function populateDates(){
@@ -396,8 +387,10 @@ let month=document.getElementById("monthSelect").value;
 let dateSelect=document.getElementById("dateSelect");
 dateSelect.innerHTML='<option value="all">All Dates</option>';
 let all=[...previousTransactions,...transactions];
+let merged=mergeTransactions(all);
+
 let uniqueDates=new Set();
-all.forEach(t=>{
+merged.forEach(t=>{
 let m=new Date(t.date).getMonth();
 if(month==="all"||m==month)uniqueDates.add(t.date);
 });
@@ -411,45 +404,35 @@ let month=document.getElementById("monthSelect").value;
 let selectedDate=document.getElementById("dateSelect").value;
 let table=document.getElementById("transactionTable");
 table.innerHTML="";
-let categoryTotals={};
-let total=0;
+let categoryTotals={}, totalSpent=0;
+let balance=0,totalCredit=0,totalDebit=0;
+let startDate=new Date("2026-02-05");
 
 let all=[...previousTransactions,...transactions];
-
-/* 🔥 MERGE SAME DATE + TYPE + CATEGORY */
-let mergedMap={};
-
-all.forEach(t=>{
-let key=t.date+"_"+t.type+"_"+t.category;
-
-if(!mergedMap[key]){
-mergedMap[key]={...t};
-}else{
-mergedMap[key].amount+=t.amount;
-}
-});
-
-let merged=Object.values(mergedMap);
-
-/* Sort descending by date */
+let merged=mergeTransactions(all);
 merged.sort((a,b)=>new Date(b.date)-new Date(a.date));
 
 merged.forEach(t=>{
 let m=new Date(t.date).getMonth();
-
 if((month==="all"||m==month)&&(selectedDate==="all"||t.date===selectedDate)){
+
 let typeClass=t.type==="Debit"?"type-debit":"type-credit";
 let color=getCategoryColor(t.category);
 
 if(t.type==="Debit"){
-total+=t.amount;
+totalSpent+=t.amount;
 if(!categoryTotals[t.category])categoryTotals[t.category]=0;
 categoryTotals[t.category]+=t.amount;
 }
 
-let newIndex=transactions.findIndex(
-x=>x.date===t.date && x.type===t.type && x.category===t.category
-);
+let d=new Date(t.date);
+if(d>=startDate){
+if(t.type==="Credit"){balance+=t.amount;totalCredit+=t.amount;}
+else{balance-=t.amount;totalDebit+=t.amount;}
+}
+
+let newIndex=transactions.findIndex(x=>
+x.date===t.date&&x.type===t.type&&x.category===t.category&&x.mode===t.mode);
 
 let del=newIndex!=-1?
 `<button class="delete-btn" onclick="deleteTransaction(${newIndex})">❌</button>`:"-";
@@ -459,17 +442,31 @@ table.innerHTML+=`
 <td>${t.date}</td>
 <td class="${typeClass}">${t.type}</td>
 <td><span class="category-badge" style="background:${color}">${t.category}</span></td>
+<td>${t.mode}</td>
 <td>₹${t.amount}</td>
 <td>${del}</td>
 </tr>`;
 }
 });
 
-document.getElementById("filteredTotal").innerText=total;
-updateChart(categoryTotals);
-calculateTotals();
-}
+/* UPDATE TOTALS */
+document.getElementById("filteredTotal").innerText=totalSpent;
+document.getElementById("balance").innerText="₹"+balance;
+document.getElementById("totalCredit").innerText="₹"+totalCredit;
+document.getElementById("totalDebit").innerText="₹"+totalDebit;
 
+/* CATEGORY SUMMARY SORTED ASCENDING */
+let summaryHTML="<h4>Category Totals</h4>";
+Object.entries(categoryTotals)
+.sort((a,b)=>a[1]-b[1])
+.forEach(([cat,amt])=>{
+let color=getCategoryColor(cat);
+summaryHTML+=`<p><span class="category-badge" style="background:${color}">${cat}</span> : ₹${amt}</p>`;
+});
+document.getElementById("categorySummary").innerHTML=summaryHTML;
+
+updateChart(categoryTotals);
+}
 
 function updateChart(data){
 if(chart)chart.destroy();
@@ -489,12 +486,10 @@ backgroundColor:colors
 
 function deleteTransaction(i){
 transactions.splice(i,1);
+saveData();
 populateDates();
 renderTable();
 }
-
-populateDates();
-renderTable();
 
 </script>
 
