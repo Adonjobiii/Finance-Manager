@@ -9,7 +9,6 @@
 
 <style>
 *{box-sizing:border-box;}
-
 body{
 margin:0;
 font-family:'Inter',sans-serif;
@@ -17,26 +16,22 @@ background:linear-gradient(135deg,#0f172a,#1e293b);
 color:white;
 transition:.3s;
 }
-
 header{
 padding:18px;
 display:flex;
 justify-content:flex-end;
 }
-
 .toggle-btn{
 background:rgba(255,255,255,0.2);
 padding:8px 12px;
 border-radius:50%;
 cursor:pointer;
 }
-
 .container{
 max-width:1200px;
 margin:auto;
 padding:20px;
 }
-
 .card{
 background:rgba(255,255,255,0.08);
 backdrop-filter:blur(25px);
@@ -44,24 +39,20 @@ border-radius:22px;
 padding:22px;
 margin-bottom:22px;
 }
-
 .dashboard{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
 gap:20px;
 margin-bottom:22px;
 }
-
 .balance{font-size:26px;font-weight:700;color:#22c55e;}
 .credit{color:#3b82f6;}
 .debit{color:#ef4444;}
-
 .form-grid{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
 gap:12px;
 }
-
 input,select{
 padding:10px;
 border-radius:10px;
@@ -69,9 +60,7 @@ border:1px solid rgba(255,255,255,0.3);
 background:rgba(255,255,255,0.2);
 color:white;
 }
-
 select option{background:#1e293b;color:white;}
-
 button{
 padding:10px;
 border:none;
@@ -81,25 +70,20 @@ color:white;
 cursor:pointer;
 font-weight:600;
 }
-
 table{
 width:100%;
 border-collapse:collapse;
 background:rgba(255,255,255,0.08);
 border-radius:18px;
 }
-
 th{
 background:transparent;
 padding:10px;
 border-bottom:1px solid rgba(255,255,255,0.2);
 }
-
 td{padding:8px;text-align:center;}
-
 .type-debit{color:#ef4444;font-weight:600;}
 .type-credit{color:#22c55e;font-weight:600;}
-
 .category-badge{
 padding:4px 10px;
 border-radius:12px;
@@ -108,7 +92,6 @@ display:inline-block;
 color:white;
 font-size:12px;
 }
-
 .delete-btn{
 background:#ef4444;
 border:none;
@@ -117,42 +100,34 @@ border-radius:6px;
 color:white;
 cursor:pointer;
 }
-
 .summary-box{
 margin-top:15px;
 padding:15px;
 border-radius:14px;
 background:rgba(255,255,255,0.1);
 }
-
 canvas{
 margin-top:20px;
 background:rgba(255,255,255,0.08);
 border-radius:20px;
 padding:15px;
 }
-
 .light{
 background:linear-gradient(135deg,#ffffff,#e2e8f0);
 color:#111;
 }
-
 .light .card,.light table,.light canvas{
 background:white;color:#111;
 }
-
 .light th{
 background:#f8fafc;color:#111;border-bottom:1px solid #ddd;
 }
-
 .light input,.light select{
 background:#f1f5f9;color:#111;border:1px solid #ccc;
 }
-
 @media(max-width:768px){
 .dashboard{grid-template-columns:1fr;}
 }
-
 </style>
 </head>
 
@@ -164,14 +139,12 @@ background:#f1f5f9;color:#111;border:1px solid #ccc;
 
 <div class="container">
 
-<!-- DASHBOARD -->
 <div class="dashboard">
 <div class="card"><h3>Total Balance</h3><div class="balance" id="balance">₹0</div></div>
 <div class="card"><h3>Total Credit</h3><div class="credit" id="totalCredit">₹0</div></div>
 <div class="card"><h3>Total Debit</h3><div class="debit" id="totalDebit">₹0</div></div>
 </div>
 
-<!-- ADD -->
 <div class="card">
 <h3>Add Transaction</h3>
 <div class="form-grid">
@@ -203,10 +176,8 @@ background:#f1f5f9;color:#111;border:1px solid #ccc;
 </div>
 </div>
 
-<!-- FILTERS -->
 <div class="card">
 <h3>Filters</h3>
-
 <select id="monthSelect" onchange="populateDates(); renderTable();">
 <option value="all">All Months</option>
 <option value="0">January</option>
@@ -228,11 +199,9 @@ background:#f1f5f9;color:#111;border:1px solid #ccc;
 </select>
 
 <p><strong>Total Spent:</strong> ₹<span id="filteredTotal">0</span></p>
-
 <div id="categorySummary" class="summary-box"></div>
 </div>
 
-<!-- TABLE -->
 <div class="card">
 <table>
 <thead>
@@ -249,7 +218,6 @@ background:#f1f5f9;color:#111;border:1px solid #ccc;
 </table>
 </div>
 
-<!-- CHART -->
 <div class="card">
 <canvas id="expenseChart"></canvas>
 </div>
@@ -258,27 +226,19 @@ background:#f1f5f9;color:#111;border:1px solid #ccc;
 
 <script>
 
-/* UNIQUE COLOR SYSTEM */
+/* COLOR ENGINE */
 let chart;
-let fullColorPalette=[
-"#3b82f6","#ef4444","#22c55e","#f59e0b","#8b5cf6","#14b8a6",
-"#e11d48","#6366f1","#10b981","#f97316","#06b6d4","#a855f7"
-];
-
-let categoryColorMap={}, usedColors=new Set();
-
-function getCategoryColor(category){
-if(categoryColorMap[category]) return categoryColorMap[category];
-for(let color of fullColorPalette){
-if(!usedColors.has(color)){
-categoryColorMap[category]=color;
-usedColors.add(color);
-return color;
-}}
+let palette=["#3b82f6","#ef4444","#22c55e","#f59e0b","#8b5cf6","#14b8a6","#e11d48","#6366f1","#10b981","#f97316"];
+let colorMap={},used=new Set();
+function getColor(cat){
+if(colorMap[cat]) return colorMap[cat];
+for(let c of palette){
+if(!used.has(c)){colorMap[cat]=c;used.add(c);return c;}
+}
 return "#999";
 }
 
-/* PREVIOUS DATA INCLUDING ₹15000 */
+/* FULL PREVIOUS DATA */
 let previousTransactions=[
 {date:"2026-01-19",type:"Debit",category:"Supermarket",amount:340},
 {date:"2026-01-19",type:"Debit",category:"Bed",amount:650},
@@ -341,9 +301,7 @@ let previousTransactions=[
 
 let transactions=JSON.parse(localStorage.getItem("trackMyMNYData"))||[];
 
-function saveData(){
-localStorage.setItem("trackMyMNYData",JSON.stringify(transactions));
-}
+function save(){localStorage.setItem("trackMyMNYData",JSON.stringify(transactions));}
 
 document.addEventListener("DOMContentLoaded",()=>{
 document.getElementById("date").value=new Date().toISOString().split('T')[0];
@@ -351,7 +309,7 @@ populateDates();
 renderTable();
 });
 
-document.addEventListener("keydown",function(e){
+document.addEventListener("keydown",e=>{
 if(e.key==="Enter"){e.preventDefault();addTransaction();}
 });
 
@@ -365,36 +323,33 @@ let mode=document.getElementById("mode").value;
 let amount=parseFloat(document.getElementById("amount").value);
 if(!date||!amount)return alert("Enter required fields");
 transactions.push({date,type,category,mode,amount});
-saveData();
-document.getElementById("amount").value="";
+save();
 populateDates();
 renderTable();
+document.getElementById("amount").value="";
 }
 
-/* MERGE LOGIC */
-function mergeTransactions(data){
-let merged={};
+function merge(data){
+let m={};
 data.forEach(t=>{
-let key=t.date+"_"+t.type+"_"+t.category+"_"+t.mode;
-if(!merged[key]) merged[key]={...t};
-else merged[key].amount+=t.amount;
+let k=t.date+"_"+t.type+"_"+t.category+"_"+t.mode;
+if(!m[k]) m[k]={...t};
+else m[k].amount+=t.amount;
 });
-return Object.values(merged);
+return Object.values(m);
 }
 
 function populateDates(){
 let month=document.getElementById("monthSelect").value;
 let dateSelect=document.getElementById("dateSelect");
 dateSelect.innerHTML='<option value="all">All Dates</option>';
-let all=[...previousTransactions,...transactions];
-let merged=mergeTransactions(all);
-
-let uniqueDates=new Set();
+let merged=merge([...previousTransactions,...transactions]);
+let set=new Set();
 merged.forEach(t=>{
 let m=new Date(t.date).getMonth();
-if(month==="all"||m==month)uniqueDates.add(t.date);
+if(month==="all"||m==month)set.add(t.date);
 });
-Array.from(uniqueDates).sort().forEach(d=>{
+Array.from(set).sort().forEach(d=>{
 dateSelect.innerHTML+=`<option value="${d}">${d}</option>`;
 });
 }
@@ -404,20 +359,18 @@ let month=document.getElementById("monthSelect").value;
 let selectedDate=document.getElementById("dateSelect").value;
 let table=document.getElementById("transactionTable");
 table.innerHTML="";
+let merged=merge([...previousTransactions,...transactions]);
+merged.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
 let categoryTotals={}, totalSpent=0;
 let balance=0,totalCredit=0,totalDebit=0;
 let startDate=new Date("2026-02-05");
 
-let all=[...previousTransactions,...transactions];
-let merged=mergeTransactions(all);
-merged.sort((a,b)=>new Date(b.date)-new Date(a.date));
-
 merged.forEach(t=>{
 let m=new Date(t.date).getMonth();
 if((month==="all"||m==month)&&(selectedDate==="all"||t.date===selectedDate)){
-
 let typeClass=t.type==="Debit"?"type-debit":"type-credit";
-let color=getCategoryColor(t.category);
+let color=getColor(t.category);
 
 if(t.type==="Debit"){
 totalSpent+=t.amount;
@@ -431,12 +384,6 @@ if(t.type==="Credit"){balance+=t.amount;totalCredit+=t.amount;}
 else{balance-=t.amount;totalDebit+=t.amount;}
 }
 
-let newIndex=transactions.findIndex(x=>
-x.date===t.date&&x.type===t.type&&x.category===t.category&&x.mode===t.mode);
-
-let del=newIndex!=-1?
-`<button class="delete-btn" onclick="deleteTransaction(${newIndex})">❌</button>`:"-";
-
 table.innerHTML+=`
 <tr>
 <td>${t.date}</td>
@@ -444,26 +391,15 @@ table.innerHTML+=`
 <td><span class="category-badge" style="background:${color}">${t.category}</span></td>
 <td>${t.mode}</td>
 <td>₹${t.amount}</td>
-<td>${del}</td>
+<td>-</td>
 </tr>`;
 }
 });
 
-/* UPDATE TOTALS */
 document.getElementById("filteredTotal").innerText=totalSpent;
 document.getElementById("balance").innerText="₹"+balance;
 document.getElementById("totalCredit").innerText="₹"+totalCredit;
 document.getElementById("totalDebit").innerText="₹"+totalDebit;
-
-/* CATEGORY SUMMARY SORTED ASCENDING */
-let summaryHTML="<h4>Category Totals</h4>";
-Object.entries(categoryTotals)
-.sort((a,b)=>a[1]-b[1])
-.forEach(([cat,amt])=>{
-let color=getCategoryColor(cat);
-summaryHTML+=`<p><span class="category-badge" style="background:${color}">${cat}</span> : ₹${amt}</p>`;
-});
-document.getElementById("categorySummary").innerHTML=summaryHTML;
 
 updateChart(categoryTotals);
 }
@@ -471,24 +407,16 @@ updateChart(categoryTotals);
 function updateChart(data){
 if(chart)chart.destroy();
 let labels=Object.keys(data);
-let colors=labels.map(cat=>getCategoryColor(cat));
 chart=new Chart(document.getElementById("expenseChart"),{
 type:'doughnut',
 data:{
 labels:labels,
 datasets:[{
 data:Object.values(data),
-backgroundColor:colors
+backgroundColor:labels.map(cat=>getColor(cat))
 }]
 }
 });
-}
-
-function deleteTransaction(i){
-transactions.splice(i,1);
-saveData();
-populateDates();
-renderTable();
 }
 
 </script>
