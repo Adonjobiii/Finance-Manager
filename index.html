@@ -415,21 +415,45 @@ let categoryTotals={};
 let total=0;
 
 let all=[...previousTransactions,...transactions];
-all.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+/* 🔥 MERGE SAME DATE + TYPE + CATEGORY */
+let mergedMap={};
 
 all.forEach(t=>{
+let key=t.date+"_"+t.type+"_"+t.category;
+
+if(!mergedMap[key]){
+mergedMap[key]={...t};
+}else{
+mergedMap[key].amount+=t.amount;
+}
+});
+
+let merged=Object.values(mergedMap);
+
+/* Sort descending by date */
+merged.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+merged.forEach(t=>{
 let m=new Date(t.date).getMonth();
+
 if((month==="all"||m==month)&&(selectedDate==="all"||t.date===selectedDate)){
 let typeClass=t.type==="Debit"?"type-debit":"type-credit";
 let color=getCategoryColor(t.category);
+
 if(t.type==="Debit"){
 total+=t.amount;
 if(!categoryTotals[t.category])categoryTotals[t.category]=0;
 categoryTotals[t.category]+=t.amount;
 }
-let newIndex=transactions.indexOf(t);
+
+let newIndex=transactions.findIndex(
+x=>x.date===t.date && x.type===t.type && x.category===t.category
+);
+
 let del=newIndex!=-1?
 `<button class="delete-btn" onclick="deleteTransaction(${newIndex})">❌</button>`:"-";
+
 table.innerHTML+=`
 <tr>
 <td>${t.date}</td>
@@ -440,10 +464,12 @@ table.innerHTML+=`
 </tr>`;
 }
 });
+
 document.getElementById("filteredTotal").innerText=total;
 updateChart(categoryTotals);
 calculateTotals();
 }
+
 
 function updateChart(data){
 if(chart)chart.destroy();
